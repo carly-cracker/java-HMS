@@ -1,30 +1,30 @@
 // Implementing runnable interface allowing real list rather than hardcoded 
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public class Doctor implements Runnable{
     //Implements Runnable so this class can be run safely inside its own background Thread
     private final String name;
-    private final BlockingQueue<LabRequest> labQueue;
-    private final List<Patient> patients;
+    private final BlockingQueue<LabResult> resultQueue;
 
-    public Doctor(String name, BlockingQueue<LabRequest> labQueue, List<Patient> patients){
+    public Doctor(String name, BlockingQueue<LabResult> resultQueue){
         this.name=name;
-        this.labQueue=labQueue;
-        this.patients=patients;
+        this.resultQueue=resultQueue;
     }
 
     @Override
     public void run() {
         try {
-            for (Patient patient : patients) {
-                LabRequest request = new LabRequest(patient, "Malaria test");
-                labQueue.put(request);
-                
-                System.out.println("Dr. " + name + " queued " + request);
-                
-                
-                Thread.sleep(200);// we Simulated this with a sleep to mimic doctor attending next patient like real world scenario
+            while (true) {
+                LabResult result = resultQueue.take();
+                if (result.isNoOrder()) {
+                    System.out.println("Dr. " + name + " finished for the day");
+                    break;
+                }
+                PatientRecord record = result.getRecord();
+                record.addTestResult(result.getTestName() + ": " + result.getOutcome());
+                record.addNote(name, "reviewed " + result.getTestName());
+                System.out.println("Dr. " + name + " reviewed " + result.getOutcome()
+                        + " result for " + record.getPatient().getName());
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
