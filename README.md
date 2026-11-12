@@ -96,5 +96,8 @@ All staff        --> PatientRepository --> PatientRecord (one ReentrantLock each
 
 ## Group members
 
-- Name 1
-- Name 2
+- TerryAnne Wanjiru - SCT211-0003/2025
+- Cedric Nzai - SCT211-0044/2025
+- Lewis Wanyika - SCT211-0221/2025
+- Stephen Kiarie - SCT211-0235/2025
+- Korir Carlos - SCT211-0456/2025
