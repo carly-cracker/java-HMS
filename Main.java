@@ -16,11 +16,12 @@ public class Main {
             new Patient(5, "Esther", "Cough"));
 
         ExecutorService pool = Executors.newFixedThreadPool(8);
+        Semaphore labMachines = new Semaphore(2, true); //tried also with 1 then 2 and then 3 machines (the more the machines the faster the processing) 
 
         Future<?> doctor1 = pool.submit(new Doctor("Phill", labQueue, group1));
         Future<?> doctor2 = pool.submit(new Doctor("Maria", labQueue, group2));
-        pool.submit(new LabTech("Carl", labQueue));
-        pool.submit(new LabTech("Milton", labQueue));
+        pool.submit(new LabTech("Carly", labQueue, labMachines));
+        pool.submit(new LabTech("Milton", labQueue, labMachines));
         pool.submit(new Nurse("Wanjiku", group1));
         pool.submit(new Nurse("Clariet", group2));
         pool.submit(new Pharmacist("Achieng", inventory, group1));
