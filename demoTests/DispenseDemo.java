@@ -1,4 +1,7 @@
+package demoTests;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import MedicineInventory;
 
 public class DispenseDemo {
     public static void main(String[] args) throws InterruptedException {
