@@ -1,10 +1,11 @@
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.*;
 
 public class Main {
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Exception {
         BlockingQueue<LabRequest> labQueue = new ArrayBlockingQueue<>(5);
+        MedicineInventory inventory = new MedicineInventory();
+        inventory.addStock("Paracetamol", 20);
 
         List<Patient> group1 = List.of(
             new Patient(1, "Will", "Fever"),
@@ -14,25 +15,29 @@ public class Main {
             new Patient(4, "David", "Fever"),
             new Patient(5, "Esther", "Cough"));
 
-        Thread doctor1 = new Thread(new Doctor("Phill", labQueue, group1));
-        Thread doctor2 = new Thread(new Doctor("Maria", labQueue, group2));
-        Thread tech1 = new Thread(new LabTech("Carl", labQueue));
-        Thread tech2 = new Thread(new LabTech("Milton", labQueue));
+        ExecutorService pool = Executors.newFixedThreadPool(8);
 
-        doctor1.start();
-        doctor2.start();
-        tech1.start();
-        tech2.start();
+        Future<?> doctor1 = pool.submit(new Doctor("Phill", labQueue, group1));
+        Future<?> doctor2 = pool.submit(new Doctor("Maria", labQueue, group2));
+        pool.submit(new LabTech("Carl", labQueue));
+        pool.submit(new LabTech("Milton", labQueue));
+        pool.submit(new Nurse("Wanjiku", group1));
+        pool.submit(new Nurse("Clariet", group2));
+        pool.submit(new Pharmacist("Achieng", inventory, group1));
+        pool.submit(new Pharmacist("kenney", inventory, group2));
 
-        doctor1.join();
-        doctor2.join();
-
-        // One No_ORDER per technician so each one knows to stop
+        // Wait for the doctors, then tell each technician to stop
+        doctor1.get();
+        doctor2.get();
         labQueue.put(LabRequest.NO_ORDER);
         labQueue.put(LabRequest.NO_ORDER);
 
-        tech1.join();
-        tech2.join();
-        System.out.println("All lab requests handled");
+        pool.shutdown();
+        if (!pool.awaitTermination(30, TimeUnit.SECONDS)) {
+            pool.shutdownNow();
+        }
+
+        System.out.println("Paracetamol left: " + inventory.getStock("Paracetamol"));
+        System.out.println("Hospital closed");
     }
 }
